@@ -26,7 +26,7 @@ public:
 
     void start() {
         status = CallStatus::CREATE;
-        ctx = grpc::ServerContext();
+        ctx = std::make_unique<grpc::ServerContext>();
         start_call();
     }
 
@@ -38,11 +38,9 @@ public:
         if (status == CallStatus::CREATE) {
             status = CallStatus::PROCESSING;
             process(success);
-        }
-        else if (statut == CallStatus::ERROR) {
+        } else if (status == CallStatus::ERROR) {
             process(success);
-        }
-        else {
+        } else {
             start();
         }
     }
@@ -57,7 +55,7 @@ public:
 protected:
     GrpcService *service;
     grpc::ServerCompletionQueue *cq;
-    grpc::ServerContext ctx;
+    std::unique_ptr<grpc::ServerContext> ctx;
     CallStatus status;
 };
 

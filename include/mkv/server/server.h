@@ -21,8 +21,9 @@ public:
     void register_calls(std::vector<std::shared_ptr<Call<GrpcService>>> calls) {}
 
     void start() {
-        for (auto &cq : cqs) {
-            threads.emplace_back([this] {
+        for (std::size_t index = 0;  index < cqs.size(); index++) {
+            threads.emplace_back([this, index] {
+                auto &cq = cqs[index];
                 void *tag;
                 bool ok;
                 while (cq->Next(&tag, &ok)) {
@@ -32,7 +33,7 @@ public:
         }
         for (auto &calls : call_map) {
             for (auto &call : calls) {
-                call->start();
+                //call->start();
             }
         }
     }

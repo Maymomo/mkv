@@ -3,6 +3,8 @@
 #include <memory>
 
 #include "mkvproto/mkv.grpc.pb.h"
+#include "mkv/server/server.h"
+#include "mkv/server/server_builder.h"
 
 namespace mkv {
 
@@ -19,10 +21,10 @@ public:
     MkvService(MkvServiceConfig config) : config(config) {}
 
     bool start() {
-        ServerBuilder<mkvproto::Mkv::AsyncService> server_builder;
+        mkv::server::ServerBuilder<mkvproto::Mkv::AsyncService> server_builder;
         server_builder.listen_on(config.server_address);
         server_builder.set_concurrent(config.concurrent_num);
-        server = server_builder.build();
+        server = server_builder.build_server();
         if (!server) {
             return false;
         }
@@ -41,9 +43,10 @@ public:
             server->shutdown();
         }
     }
+
 private:
     MkvServiceConfig config;
-    std::unique_ptr<Server<mkvproto::Mkv::AsyncService>> server;
+    std::unique_ptr<mkv::server::Server<mkvproto::Mkv::AsyncService>> server;
 };
 }
 }

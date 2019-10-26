@@ -17,16 +17,19 @@ public:
         if (concurrent <= 0) {
             return {};
         }
+
         std::vector<std::unique_ptr<grpc::ServerCompletionQueue>> cqs;
+
         for (std::size_t i = 0; i < concurrent; i++) {
             cqs.emplace_back(builder.AddCompletionQueue());
         }
 
-        server = builder.BuildAndStart();
+        auto server = builder.BuildAndStart();
+
         if (!server) {
             return {};
         }
-        return {std::move(server), std::move(cqs), std::move(service)};
+        return std::make_unique<Server<GrpcService>>(std::move(server), std::move(cqs), std::move(service));
     }
 
     void listen_on(std::string address) {
