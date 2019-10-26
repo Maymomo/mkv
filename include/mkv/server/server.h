@@ -9,60 +9,47 @@
 
 #include "mkv/server/call.h"
 
-namespace mkv
-{
-namespace server
-{
+namespace mkv {
+namespace server {
 template <class GrpcService>
-class Server
-{
+class Server {
 public:
     Server(std::unique_ptr<grpc::Server> &&server, std::vector<std::unique_ptr<grpc::ServerCompletionQueue>> &&cqs, std::unique_ptr<GrpcService> &&service)
-        : server(std::move(server)), cqs(std::move(cqs)), service(std::move(service))
-    {
+        : server(std::move(server)), cqs(std::move(cqs)), service(std::move(service)) {
     }
 
     void register_calls(std::vector<std::shared_ptr<Call<GrpcService>>> calls) {}
 
-    void start()
-    {
-        for (auto &cq : cqs)
-        {
+    void start() {
+        for (auto &cq : cqs) {
             threads.emplace_back([this] {
                 void *tag;
                 bool ok;
-                while (cq->Next(&tag, &ok))
-                {
+                while (cq->Next(&tag, &ok)) {
                     static_cast<Call<GrpcService> *>(tag)->handle(ok);
                 }
             });
         }
-        for (auto &calls : call_map)
-        {
-            for (auto &call : calls)
-            {
+        for (auto &calls : call_map) {
+            for (auto &call : calls) {
                 call->start();
             }
         }
     }
-    
+
     GrpcService *grpc_service() {
         return service.get();
     }
 
-    ~Server()
-    {
+    ~Server() {
         shutdown();
     }
 
-    void shutdown()
-    {
-        for (auto &cq : cqs)
-        {
+    void shutdown() {
+        for (auto &cq : cqs) {
             cq->Shutdown();
         }
-        for (auto &t : threads)
-        {
+        for (auto &t : threads) {
             t.join();
         }
     }

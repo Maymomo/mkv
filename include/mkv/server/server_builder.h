@@ -5,42 +5,35 @@
 
 #include "mkv/server/server.h"
 
-namespace mkv
-{
-namespace server
-{
+namespace mkv {
+namespace server {
 template <class GrpcService>
-class ServerBuilder
-{
+class ServerBuilder {
 public:
     ServerBuilder() : service(new GrpcService()) {}
-    std::unique_ptr<Server<GrpcService>> build_server()
-    {
+    std::unique_ptr<Server<GrpcService>> build_server() {
         builder.AddListeningPort(server_address, grpc::InsecureServerCredentials());
         builder.RegisterService(service.get());
-        if (concurrent <= 0)
-        {
+        if (concurrent <= 0) {
             return {};
         }
         std::vector<std::unique_ptr<grpc::ServerCompletionQueue>> cqs;
-        for (std::size_t i = 0; i < concurrent; i++)
-        {
+        for (std::size_t i = 0; i < concurrent; i++) {
             cqs.emplace_back(builder.AddCompletionQueue());
         }
 
         server = builder.BuildAndStart();
-        if (!server)
+        if (!server) {
             return {};
+        }
         return {std::move(server), std::move(cqs), std::move(service)};
     }
 
-    void listen_on(std::string address)
-    {
+    void listen_on(std::string address) {
         server_address = std::move(address);
     }
 
-    void set_concurrent(std::size_t num)
-    {
+    void set_concurrent(std::size_t num) {
         concurrent = num;
     }
 

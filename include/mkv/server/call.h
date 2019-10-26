@@ -3,18 +3,14 @@
 #include <memory>
 #include "grpcpp/grpcpp.h"
 
-namespace mkv
-{
-namespace server
-{
+namespace mkv {
+namespace server {
 
 template <class GrpcService>
-class Call
-{
+class Call {
 public:
     Call(GrpcService *service, grpc::ServerCompletionQueue *cq)
-        : service(service), cq(cq), status(CallStatus::CREATE)
-    {
+        : service(service), cq(cq), status(CallStatus::CREATE) {
     }
 
     virtual void process(bool success);
@@ -23,43 +19,35 @@ public:
 
     virtual void finish_call();
 
-    void finish()
-    {
+    void finish() {
         status = CallStatus::FINISH;
         finish_call();
     }
 
-    void start()
-    {
+    void start() {
         status = CallStatus::CREATE;
         ctx = grpc::ServerContext();
         start_call();
     }
 
-    void handle(bool success)
-    {
-        if (!success)
-        {
+    void handle(bool success) {
+        if (!success) {
             status = CallStatus::ERROR;
         }
 
-        if (status == CallStatus::CREATE)
-        {
+        if (status == CallStatus::CREATE) {
             status = CallStatus::PROCESSING;
             process(success);
         }
-        else if (statut == CallStatus::ERROR)
-        {
+        else if (statut == CallStatus::ERROR) {
             process(success);
         }
-        else
-        {
+        else {
             start();
         }
     }
 
-    enum class CallStatus
-    {
+    enum class CallStatus {
         CREATE,
         PROCESSING,
         FINISH,

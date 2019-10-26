@@ -5,13 +5,15 @@
 #include "mkvproto/mkv.grpc.pb.h"
 
 namespace mkv {
+
+namespace service {
+
 struct MkvServiceConfig {
     std::string server_address;
     std::size_t per_call_num;
     std::size_t concurrent_num;
 };
 
-namespace service {
 class MkvService {
 public:
     MkvService(MkvServiceConfig config) : config(config) {}
