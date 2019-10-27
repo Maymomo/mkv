@@ -18,7 +18,14 @@ public:
         : server(std::move(server)), cqs(std::move(cqs)), service(std::move(service)) {
     }
 
-    void register_calls(std::vector<std::shared_ptr<Call<GrpcService>>> calls) {}
+    void register_calls(std::vector<CallPtr<GrpcService>> calls) {
+        std::size_t cqs_size = cqs.size();
+        std::size_t calls_size  = calls.size();
+        for (std::size_t call_index = 0; call_index < calls_size; call_index++) {
+            calls[call_index]->bind_complete_queue(cqs[call_index % cqs_size].get());
+        }
+        call_map.emplace_back(std::move(calls));
+    }
 
     void start() {
         for (std::size_t index = 0;  index < cqs.size(); index++) {
@@ -33,7 +40,7 @@ public:
         }
         for (auto &calls : call_map) {
             for (auto &call : calls) {
-                //call->start();
+                call->start();
             }
         }
     }

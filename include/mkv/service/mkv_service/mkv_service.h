@@ -10,6 +10,8 @@ namespace mkv {
 
 namespace service {
 
+namespace mkv_service {
+
 struct MkvServiceConfig {
     std::string server_address;
     std::size_t per_call_num;
@@ -18,35 +20,18 @@ struct MkvServiceConfig {
 
 class MkvService {
 public:
-    MkvService(MkvServiceConfig config) : config(config) {}
+    MkvService(std::unique_ptr<mkv::server::Server<mkvproto::Mkv::AsyncService>> &&server) : server(std::move(server)) {}
 
-    bool start() {
-        mkv::server::ServerBuilder<mkvproto::Mkv::AsyncService> server_builder;
-        server_builder.listen_on(config.server_address);
-        server_builder.set_concurrent(config.concurrent_num);
-        server = server_builder.build_server();
-        if (!server) {
-            return false;
-        }
-        // call all request
-        /*
-         * for () {
-         *  calls = build_calls();
-         *  server->register_calls(calls);
-         * }
-         */
-        server->start();
-    }
+    void start();
 
-    void shutdown() {
-        if (server) {
-            server->shutdown();
-        }
-    }
-
+    void shutdown();
 private:
-    MkvServiceConfig config;
+    void register_call(std::vector<mkv::server::CallPtr<mkvproto::Mkv::AsyncService>> &&calls);
+private:
     std::unique_ptr<mkv::server::Server<mkvproto::Mkv::AsyncService>> server;
+public:
+    static std::unique_ptr<MkvService> build_service(MkvServiceConfig config);
 };
+}
 }
 }

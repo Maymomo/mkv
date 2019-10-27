@@ -4,30 +4,31 @@
 #include "grpcpp/grpcpp.h"
 
 namespace mkv {
+
 namespace server {
+
+template <class GrpcService>
+class Server;
 
 template <class GrpcService>
 class Call {
 public:
-    Call(GrpcService *service, grpc::ServerCompletionQueue *cq)
-        : service(service), cq(cq), status(CallStatus::CREATE) {
-    }
+    Call() : status(CallStatus::CREATE) {}
 
-    virtual void process(bool success);
+    virtual void process(bool success) = 0;
 
-    virtual void start_call();
+    virtual void start_async_call() = 0 ;
 
-    virtual void finish_call();
+    virtual void finish_async_call() = 0;
 
     void finish() {
         status = CallStatus::FINISH;
-        finish_call();
+        finish_async_call();
     }
 
     void start() {
         status = CallStatus::CREATE;
-        ctx = std::make_unique<grpc::ServerContext>();
-        start_call();
+        start_async_call();
     }
 
     void handle(bool success) {
@@ -51,15 +52,19 @@ public:
         FINISH,
         ERROR,
     };
+private:
+    friend class Server<GrpcService>;
+    void bind_complete_queue(grpc::ServerCompletionQueue *complete_queue) {
+        cq = complete_queue;
+    }
 
 protected:
-    GrpcService *service;
     grpc::ServerCompletionQueue *cq;
-    std::unique_ptr<grpc::ServerContext> ctx;
     CallStatus status;
 };
 
 template <class GrpcService>
-using CallPtr = std::vector<std::shared_ptr<Call<GrpcService>>>;
-} // namespace server
-} // namespace mkv
+using CallPtr = std::shared_ptr<Call<GrpcService>>;
+}
+
+}
