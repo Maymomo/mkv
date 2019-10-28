@@ -28,8 +28,10 @@ include_directories(
 )
 
 add_library(mkv_service STATIC ${mkv_server_src} ${mkv_service_src})
+
 target_link_libraries(mkv_service ${_GRPC_GRPCPP_UNSECURE}
-    ${_PROTOBUF_LIBPROTOBUF})
+    ${_PROTOBUF_LIBPROTOBUF} mkvproto)
 
 add_executable(main main.cc)
-target_link_libraries(main mkv_service mkvproto ${_GRPC_GRPCPP_UNSECURE} ${_PROTOBUF_LIBPROTOBUF})
+target_link_libraries(main mkv_service ${_GRPC_GRPCPP_UNSECURE}
+    ${_PROTOBUF_LIBPROTOBUF} mkvproto)
